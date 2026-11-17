@@ -23,7 +23,8 @@ def evaluate_config(
     """Metrics of each backtest period (period_1 is the most recent) and their means.
 
     Per period: WAPE of the baseline and of the model, coverage of the 10-90 band before and
-    after calibration, and the cost of the three reservation policies.
+    after calibration, the cost of the three reservation policies, and the saving of the model
+    against the buffer (own buffer and fixed-widening buffer).
     """
     metrics = {}
     for k in range(n_periods):
@@ -52,6 +53,14 @@ def evaluate_config(
         for policy in ("baseline", "baseline_buffer", "model"):
             metrics[f"{name}_cost_{policy}"] = float(costs[policy])
         metrics[f"{name}_saving_vs_buffer"] = 1 - costs["model"] / costs["baseline_buffer"]
+        # With proportional widening both policies change, so also compare the model against the
+        # buffer with fixed widening, which is the same reference for every configuration
+        fixed = (
+            decision_costs(long, k, cu, co, params, cal_days, False, features, test_days)
+            if relative
+            else costs
+        )
+        metrics[f"{name}_saving_vs_fixed_buffer"] = 1 - costs["model"] / fixed["baseline_buffer"]
 
     for suffix in sorted({key.split("_", 2)[2] for key in list(metrics)}):
         values = [metrics[f"period_{k + 1}_{suffix}"] for k in range(n_periods)]

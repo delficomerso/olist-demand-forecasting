@@ -33,3 +33,17 @@ def test_number_of_periods_is_respected(long):
     out = evaluate_config(long, n_periods=1)
     assert "period_1_wape_model" in out
     assert "period_2_wape_model" not in out
+
+
+def test_saving_against_the_fixed_buffer_equals_the_plain_saving_without_scaling(long):
+    out = evaluate_config(long)
+    for k in (1, 2, 3):
+        assert out[f"period_{k}_saving_vs_fixed_buffer"] == pytest.approx(out[f"period_{k}_saving_vs_buffer"])
+
+
+def test_saving_against_the_fixed_buffer_uses_the_fixed_widening_buffer(long):
+    fixed, scaled = evaluate_config(long), evaluate_config(long, relative=True)
+    for k in (1, 2, 3):
+        expected = 1 - scaled[f"period_{k}_cost_model"] / fixed[f"period_{k}_cost_baseline_buffer"]
+        assert scaled[f"period_{k}_saving_vs_fixed_buffer"] == pytest.approx(expected)
+    assert "mean_saving_vs_fixed_buffer" in scaled
