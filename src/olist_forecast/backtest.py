@@ -7,8 +7,11 @@ BLACK_FRIDAY = (("2017-11-24", "2017-12-29"),)
 
 
 def wape(actual, pred):
-    """Total absolute error divided by total units."""
-    return (actual - pred).abs().sum() / actual.sum()
+    """Total absolute error divided by total units (nan if there are no units)."""
+    total = actual.sum()
+    if total == 0:
+        return float("nan")
+    return (actual - pred).abs().sum() / total
 
 
 def split_period(data, k, cal_days=0, test_days=56, exclude=BLACK_FRIDAY):
@@ -29,4 +32,10 @@ def split_period(data, k, cal_days=0, test_days=56, exclude=BLACK_FRIDAY):
     tr = data[(data["day"] < cal_begin) & ~excluded]
     cal = data[(data["day"] >= cal_begin) & (data["day"] < test_begin)]
     te = data[(data["day"] >= test_begin) & (data["day"] <= test_end)]
+    if te.empty:
+        raise ValueError(f"Backtest period {k} lies outside the available data")
+    if tr.empty:
+        raise ValueError(f"Backtest period {k} has no training rows; use fewer periods or a shorter test window")
+    if cal_days > 0 and cal.empty:
+        raise ValueError(f"Backtest period {k} has no calibration rows")
     return tr, cal, te

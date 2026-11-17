@@ -23,3 +23,14 @@ def test_pivot_trims_to_requested_range():
     out = _pivot_top_categories(daily, "2018-01-01", "2018-01-11", 1, "2018-01-03", "2018-01-08")
     assert out.index.min() == pd.Timestamp("2018-01-03")
     assert out.index.max() == pd.Timestamp("2018-01-08")
+
+
+def test_load_series_reads_dates_as_index(tmp_path):
+    from olist_forecast import load_series
+
+    path = tmp_path / "series.csv"
+    path.write_text("day,a,b\n2018-01-01,1,2\n2018-01-02,3,4\n")
+    out = load_series(path)
+    assert isinstance(out.index, pd.DatetimeIndex)
+    assert list(out.columns) == ["a", "b"]
+    assert out.loc["2018-01-02", "b"] == 4

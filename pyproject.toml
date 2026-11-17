@@ -17,6 +17,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest"]
+tracking = ["mlflow"]
 notebooks = ["jupyter", "matplotlib", "holidays", "statsforecast"]
 
 [tool.setuptools.packages.find]
@@ -24,3 +25,6 @@ where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+filterwarnings = [
+    "ignore:The .generic. unit for NumPy timedelta:DeprecationWarning",
+]

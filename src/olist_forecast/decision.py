@@ -24,12 +24,16 @@ def decision_costs(data, k, cu, co, params=VERY_SMALL, cal_days=56, relative=Fal
     to it, and model uses the calibrated quantile forecast. With relative=True both calibrated
     policies use a widening proportional to the 28-day mean.
     """
+    if cu <= 0 or co <= 0:
+        raise ValueError("cu and co must be positive")
     level = cu / (cu + co)
     tr, cal, te = split_period(data, k, cal_days, test_days)
     model = fit_quantile(tr, features, level, params)
 
     scale_cal = cal["mean_28"].to_numpy() if relative else 1.0
     scale_te = te["mean_28"].to_numpy() if relative else np.ones(len(te))
+    if relative and ((scale_cal == 0).any() or (scale_te == 0).any()):
+        raise ValueError("relative widening needs a positive 28-day mean in every row")
 
     y_cal = cal["units"].to_numpy()
     y = te["units"].to_numpy()
