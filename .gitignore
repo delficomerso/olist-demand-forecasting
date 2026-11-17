@@ -4,3 +4,6 @@ __pycache__/
 .env
 mlruns/
 *.ipynb_checkpoints
+*.egg-info/
+__pycache__/
+.pytest_cache/
