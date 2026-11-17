@@ -42,3 +42,20 @@ def build_features(series, horizon=7):
     long = long.dropna().reset_index(drop=True)
     long["baseline"] = long[LAG_COLUMNS].mean(axis=1)
     return long
+
+
+def build_forecast_tables(series, horizon=7, fill=0):
+    """Feature tables for the known history and for the next `horizon` days.
+
+    Returns (history, future). History is the same table as build_features(series). Future has
+    one row per category and day after the last one, with the same feature columns. Every lag is
+    at least `horizon` days old, so the units of the future days are never used: they are filled
+    with `fill` only to build the rows and are dropped from the result.
+    """
+    last_day = series.index.max()
+    future_days = pd.date_range(last_day + pd.Timedelta(days=1), periods=horizon, freq="D", name="day")
+    placeholder = pd.DataFrame(fill, index=future_days, columns=series.columns)
+    long = build_features(pd.concat([series, placeholder]), horizon)
+    history = long[long["day"] <= last_day].reset_index(drop=True)
+    future = long[long["day"] > last_day].drop(columns=["units"]).reset_index(drop=True)
+    return history, future

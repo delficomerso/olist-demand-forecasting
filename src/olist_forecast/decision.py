@@ -16,6 +16,21 @@ def cost(y, capacity, cu, co):
     return (cu * np.maximum(y - capacity, 0) + co * np.maximum(capacity - y, 0)).sum()
 
 
+def reserve_capacity(train, cal, target, level, params=VERY_SMALL, relative=False, features=FEATURES):
+    """Capacity to reserve for the target rows: the calibrated quantile `level` of demand.
+
+    The quantile model is trained on `train` and its calibration is measured on `cal`. The
+    target rows only need the feature columns, so they can be days whose units are not known yet.
+    """
+    model = fit_quantile(train, features, level, params)
+    scale_cal = cal["mean_28"].to_numpy() if relative else 1.0
+    scale_target = target["mean_28"].to_numpy() if relative else np.ones(len(target))
+    if relative and ((scale_cal == 0).any() or (scale_target == 0).any()):
+        raise ValueError("relative widening needs a positive 28-day mean in every row")
+    residuals = (cal["units"].to_numpy() - model.predict(cal[features])) / scale_cal
+    return model.predict(target[features]) + conformal_adjustment(residuals, level) * scale_target
+
+
 def decision_costs(
     data, k, cu, co, params=VERY_SMALL, cal_days=56, relative=False, features=FEATURES, test_days=56
 ):
@@ -29,7 +44,6 @@ def decision_costs(
         raise ValueError("cu and co must be positive")
     level = cu / (cu + co)
     tr, cal, te = split_period(data, k, cal_days, test_days)
-    model = fit_quantile(tr, features, level, params)
 
     scale_cal = cal["mean_28"].to_numpy() if relative else 1.0
     scale_te = te["mean_28"].to_numpy() if relative else np.ones(len(te))
@@ -41,8 +55,7 @@ def decision_costs(
 
     capacity_baseline = te["baseline"].to_numpy()
     buffer = conformal_adjustment((y_cal - cal["baseline"].to_numpy()) / scale_cal, level) * scale_te
-    adjustment = conformal_adjustment((y_cal - model.predict(cal[features])) / scale_cal, level) * scale_te
-    capacity_model = model.predict(te[features]) + adjustment
+    capacity_model = reserve_capacity(tr, cal, te, level, params, relative, features)
 
     return {
         "test_start": te["day"].min().date(),

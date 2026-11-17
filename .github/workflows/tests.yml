@@ -19,10 +19,17 @@ jobs:
           cache: pip
           cache-dependency-path: pyproject.toml
       - name: Install the package
-        run: pip install -e ".[dev]"
+        run: pip install -e ".[dev,api]"
       - name: Lint
         run: ruff check .
       - name: Check formatting
         run: ruff format --check .
       - name: Run tests
         run: pytest
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the API image
+        run: docker build -t olist-forecast .

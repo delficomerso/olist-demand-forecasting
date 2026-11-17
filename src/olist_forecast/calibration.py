@@ -26,15 +26,24 @@ def calibrated_bounds(
     category with more units gets a wider adjustment.
     """
     tr, cal, te = split_period(data, k, cal_days, test_days)
-    low, high = fit_quantile(tr, features, 0.1, params), fit_quantile(tr, features, 0.9, params)
+    low, high, adjustment = band(tr, cal, te, params, level, relative, features)
+    return te, low, high, adjustment
+
+
+def band(train, cal, target, params=VERY_SMALL, level=0.8, relative=False, features=FEATURES):
+    """10-90 bounds for the target rows and the widening of each row.
+
+    The quantile models are trained on `train` and the widening is calibrated on `cal`. The
+    target rows only need the feature columns, so they can be days whose units are not known yet.
+    """
+    low, high = fit_quantile(train, features, 0.1, params), fit_quantile(train, features, 0.9, params)
 
     scale_cal = cal["mean_28"].to_numpy() if relative else 1.0
-    scale_te = te["mean_28"].to_numpy() if relative else np.ones(len(te))
-    if relative and ((scale_cal == 0).any() or (scale_te == 0).any()):
+    scale_target = target["mean_28"].to_numpy() if relative else np.ones(len(target))
+    if relative and ((scale_cal == 0).any() or (scale_target == 0).any()):
         raise ValueError("relative widening needs a positive 28-day mean in every row")
 
     y_cal = cal["units"].to_numpy()
     score = np.maximum(low.predict(cal[features]) - y_cal, y_cal - high.predict(cal[features])) / scale_cal
-    adjustment = conformal_adjustment(score, level) * scale_te
-
-    return te, low.predict(te[features]), high.predict(te[features]), adjustment
+    adjustment = conformal_adjustment(score, level) * scale_target
+    return low.predict(target[features]), high.predict(target[features]), adjustment
