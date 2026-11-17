@@ -15,7 +15,9 @@ from olist_forecast import build_demand_series, build_features, decision_costs, 
 SERIES_PATH = Path(__file__).resolve().parents[1] / "data" / "processed" / "demand_daily.csv"
 DB_URL = "postgresql+psycopg2://olist:olist@localhost:5432/olist"
 
-needs_series = pytest.mark.skipif(not SERIES_PATH.exists(), reason="data/processed/demand_daily.csv not found")
+needs_series = pytest.mark.skipif(
+    not SERIES_PATH.exists(), reason="data/processed/demand_daily.csv not found"
+)
 
 
 @needs_series

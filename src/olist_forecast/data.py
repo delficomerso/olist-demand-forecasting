@@ -36,9 +36,7 @@ def build_demand_series(
     missing days count as zero, and the series is trimmed to [keep_from, keep_to], where the
     marketplace has stable activity. `end` is exclusive.
     """
-    query = text(DEMAND_SQL).bindparams(
-        bindparam("excluded", expanding=True)
-    )
+    query = text(DEMAND_SQL).bindparams(bindparam("excluded", expanding=True))
     daily = pd.read_sql(
         query, engine, params={"excluded": list(excluded_statuses), "start": start, "end": end}
     )

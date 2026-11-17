@@ -1,5 +1,4 @@
 import numpy as np
-
 import pytest
 
 from olist_forecast import build_features, calibrated_bounds, conformal_adjustment, split_period
@@ -73,7 +72,7 @@ def test_bounds_do_not_depend_on_test_actuals(long):
     changed.loc[te.index, "units"] = 10_000
     original = calibrated_bounds(long, 0)
     perturbed = calibrated_bounds(changed, 0)
-    for a, b in zip(original[1:], perturbed[1:]):
+    for a, b in zip(original[1:], perturbed[1:], strict=True):
         np.testing.assert_allclose(a, b)
 
 

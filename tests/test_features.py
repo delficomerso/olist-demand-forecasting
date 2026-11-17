@@ -12,7 +12,7 @@ def test_features_only_use_data_known_seven_days_ahead(series):
     history = series["a"]
     assert row["lag_7"] == history[day - np.timedelta64(7, "D")]
     assert row["lag_28"] == history[day - np.timedelta64(28, "D")]
-    window = history[day - np.timedelta64(13, "D"): day - np.timedelta64(7, "D")]
+    window = history[day - np.timedelta64(13, "D") : day - np.timedelta64(7, "D")]
     assert row["mean_7"] == pytest.approx(window.mean())
 
 

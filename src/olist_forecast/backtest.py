@@ -35,7 +35,9 @@ def split_period(data, k, cal_days=0, test_days=56, exclude=BLACK_FRIDAY):
     if te.empty:
         raise ValueError(f"Backtest period {k} lies outside the available data")
     if tr.empty:
-        raise ValueError(f"Backtest period {k} has no training rows; use fewer periods or a shorter test window")
+        raise ValueError(
+            f"Backtest period {k} has no training rows; use fewer periods or a shorter test window"
+        )
     if cal_days > 0 and cal.empty:
         raise ValueError(f"Backtest period {k} has no calibration rows")
     return tr, cal, te

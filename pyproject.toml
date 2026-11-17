@@ -16,7 +16,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest"]
+dev = ["pytest", "ruff"]
 tracking = ["mlflow"]
 notebooks = ["jupyter", "matplotlib", "holidays", "statsforecast"]
 
@@ -28,3 +28,11 @@ testpaths = ["tests"]
 filterwarnings = [
     "ignore:The .generic. unit for NumPy timedelta:DeprecationWarning",
 ]
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+extend-exclude = ["notebooks"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]

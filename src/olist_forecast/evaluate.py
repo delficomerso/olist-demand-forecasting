@@ -9,8 +9,17 @@ from .features import FEATURES
 from .models import VERY_SMALL, fit_point
 
 
-def evaluate_config(long, params=VERY_SMALL, cu=4.0, co=1.0, relative=False, cal_days=56,
-                    test_days=56, n_periods=3, features=FEATURES):
+def evaluate_config(
+    long,
+    params=VERY_SMALL,
+    cu=4.0,
+    co=1.0,
+    relative=False,
+    cal_days=56,
+    test_days=56,
+    n_periods=3,
+    features=FEATURES,
+):
     """Metrics of each backtest period (period_1 is the most recent) and their means.
 
     Per period: WAPE of the baseline and of the model, coverage of the 10-90 band before and
@@ -25,7 +34,12 @@ def evaluate_config(long, params=VERY_SMALL, cu=4.0, co=1.0, relative=False, cal
         metrics[f"{name}_wape_model"] = float(wape(te["units"], model.predict(te[features])))
 
         te_band, lo, hi, adjustment = calibrated_bounds(
-            long, k, params, cal_days=cal_days, relative=relative, features=features,
+            long,
+            k,
+            params,
+            cal_days=cal_days,
+            relative=relative,
+            features=features,
             test_days=test_days,
         )
         y = te_band["units"].to_numpy()

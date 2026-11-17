@@ -3,8 +3,13 @@
 import lightgbm as lgb
 
 VERY_SMALL = dict(
-    objective="l1", n_estimators=100, learning_rate=0.05, num_leaves=4,
-    min_child_samples=60, random_state=42, verbose=-1,
+    objective="l1",
+    n_estimators=100,
+    learning_rate=0.05,
+    num_leaves=4,
+    min_child_samples=60,
+    random_state=42,
+    verbose=-1,
 )
 
 

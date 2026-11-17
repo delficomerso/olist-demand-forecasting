@@ -1,4 +1,5 @@
 """Load the raw Olist CSV files into PostgreSQL, one table per file."""
+
 from pathlib import Path
 
 import pandas as pd

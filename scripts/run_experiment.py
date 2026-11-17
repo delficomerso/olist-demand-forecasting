@@ -49,15 +49,21 @@ def main():
     mlflow.set_tracking_uri(args.tracking_uri)
     mlflow.set_experiment(args.experiment)
     with mlflow.start_run(run_name=args.name):
-        mlflow.log_params({
-            **{f"model_{key}": value for key, value in params.items() if key != "verbose"},
-            "cu": args.cu, "co": args.co, "cu_over_co": args.cu / args.co,
-            "relative_widening": args.relative, "cal_days": args.cal_days,
-            "test_days": args.test_days, "n_features": len(FEATURES),
-        })
-        mlflow.log_metrics(evaluate_config(
-            long, params, args.cu, args.co, args.relative, args.cal_days, args.test_days
-        ))
+        mlflow.log_params(
+            {
+                **{f"model_{key}": value for key, value in params.items() if key != "verbose"},
+                "cu": args.cu,
+                "co": args.co,
+                "cu_over_co": args.cu / args.co,
+                "relative_widening": args.relative,
+                "cal_days": args.cal_days,
+                "test_days": args.test_days,
+                "n_features": len(FEATURES),
+            }
+        )
+        mlflow.log_metrics(
+            evaluate_config(long, params, args.cu, args.co, args.relative, args.cal_days, args.test_days)
+        )
         # Model of the most recent backtest period, trained only on data before its test window
         train, _, _ = split_period(long, 0, test_days=args.test_days)
         mlflow.lightgbm.log_model(fit_point(train, FEATURES, params), name="model")

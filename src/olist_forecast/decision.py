@@ -16,8 +16,9 @@ def cost(y, capacity, cu, co):
     return (cu * np.maximum(y - capacity, 0) + co * np.maximum(capacity - y, 0)).sum()
 
 
-def decision_costs(data, k, cu, co, params=VERY_SMALL, cal_days=56, relative=False,
-                   features=FEATURES, test_days=56):
+def decision_costs(
+    data, k, cu, co, params=VERY_SMALL, cal_days=56, relative=False, features=FEATURES, test_days=56
+):
     """Cost of three reservation policies in backtest period k.
 
     baseline is the mean of the last four weekly lags, baseline_buffer adds a calibrated buffer

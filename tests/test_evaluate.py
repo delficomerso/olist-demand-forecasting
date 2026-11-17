@@ -8,9 +8,7 @@ def test_metrics_cover_every_period_and_means(long):
     for k in (1, 2, 3):
         assert f"period_{k}_wape_model" in out
         assert f"period_{k}_cost_baseline_buffer" in out
-    assert out["mean_wape_model"] == pytest.approx(
-        sum(out[f"period_{k}_wape_model"] for k in (1, 2, 3)) / 3
-    )
+    assert out["mean_wape_model"] == pytest.approx(sum(out[f"period_{k}_wape_model"] for k in (1, 2, 3)) / 3)
 
 
 def test_relative_option_changes_calibrated_coverage_only_through_widening(long):
