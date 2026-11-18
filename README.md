@@ -104,6 +104,6 @@ docker-compose.yml    PostgreSQL and the service
 
 ## Author
 
-Delfina Comerso Salzer. [LinkedIn](https://www.linkedin.com/in/delfina-comerso-salzer/) and [GitHub](https://github.com/delficomerso).
+Delfina Belén Comerso Salzer.
 
 The Olist dataset has its own license, which is on its Kaggle page.
