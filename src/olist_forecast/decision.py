@@ -31,6 +31,21 @@ def reserve_capacity(train, cal, target, level, params=VERY_SMALL, relative=Fals
     return model.predict(target[features]) + conformal_adjustment(residuals, level) * scale_target
 
 
+def buffered_baseline(cal, target, level, relative=False):
+    """Capacity of the baseline plus a buffer calibrated on `cal`, for the target rows.
+
+    The baseline is the mean of the last four weekly lags. The buffer is the conformal quantile
+    `level` of how far the baseline fell short in the calibration rows, proportional to the
+    28-day mean when relative is True.
+    """
+    scale_cal = cal["mean_28"].to_numpy() if relative else 1.0
+    scale_target = target["mean_28"].to_numpy() if relative else np.ones(len(target))
+    if relative and ((scale_cal == 0).any() or (scale_target == 0).any()):
+        raise ValueError("relative widening needs a positive 28-day mean in every row")
+    shortfall = (cal["units"].to_numpy() - cal["baseline"].to_numpy()) / scale_cal
+    return target["baseline"].to_numpy() + conformal_adjustment(shortfall, level) * scale_target
+
+
 def decision_costs(
     data, k, cu, co, params=VERY_SMALL, cal_days=56, relative=False, features=FEATURES, test_days=56
 ):
@@ -45,21 +60,14 @@ def decision_costs(
     level = cu / (cu + co)
     tr, cal, te = split_period(data, k, cal_days, test_days)
 
-    scale_cal = cal["mean_28"].to_numpy() if relative else 1.0
-    scale_te = te["mean_28"].to_numpy() if relative else np.ones(len(te))
-    if relative and ((scale_cal == 0).any() or (scale_te == 0).any()):
-        raise ValueError("relative widening needs a positive 28-day mean in every row")
-
-    y_cal = cal["units"].to_numpy()
     y = te["units"].to_numpy()
-
     capacity_baseline = te["baseline"].to_numpy()
-    buffer = conformal_adjustment((y_cal - cal["baseline"].to_numpy()) / scale_cal, level) * scale_te
+    capacity_buffer = buffered_baseline(cal, te, level, relative)
     capacity_model = reserve_capacity(tr, cal, te, level, params, relative, features)
 
     return {
         "test_start": te["day"].min().date(),
         "baseline": cost(y, capacity_baseline, cu, co),
-        "baseline_buffer": cost(y, capacity_baseline + buffer, cu, co),
+        "baseline_buffer": cost(y, capacity_buffer, cu, co),
         "model": cost(y, capacity_model, cu, co),
     }

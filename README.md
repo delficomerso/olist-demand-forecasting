@@ -13,6 +13,7 @@ This project predicts how many items will be ordered each day in each product ca
 - **The forecast beats a simple rule.** The simple rule is to expect the average of the same weekday over the last four weeks, with an average error of 35% of the units sold. The model brings it to 32%, better in each of the three test periods. Standard statistical methods reach a similar error, so the advantage of the model is that it also gives the range below.
 - **Each forecast comes with a range, and the range holds up.** A single number is never exactly right, so every day also gets a low and a high value, meant to contain the real demand on 8 of every 10 days. On average over the test periods it did on 79.5% of the days, between 70% and 86% depending on the period. This matters because the amount to reserve depends on how much demand can vary, not only on its average.
 - **The decision costs less.** When a missing unit costs four times as much as an idle one, a calibrated safety margin on top of the simple rule already saves 24% of the cost. Reserving from the model, with the safety margin scaled to the size of each category, costs a further 5% to 8% less than that buffered rule, for cost ratios from 1 to 9.
+- **The model has to be retrained.** In a replay of 24 weeks of past data, a model that is never retrained ends up worse than the simple rule, with an error of 37% against 35%. Retraining it every four weeks brings the error to 33% and makes its decisions cost 5% less than the simple rule with a buffer, and retraining every week adds little. This is a simulation on past data and not a deployed monitor.
 
 The costs are **assumed** values, since Olist does not publish them, so these savings show how the method works and are not a measured result for a real company. The analysis behind each point, with its tables, is in [`notebooks/04_forecast_and_decision.ipynb`](notebooks/04_forecast_and_decision.ipynb).
 
@@ -23,9 +24,10 @@ The costs are **assumed** values, since Olist does not publish them, so these sa
 3. **Forecast.** A LightGBM model predicts the next seven days from the recent past. It is compared with a simple baseline and with classical time series methods, and tested only on dates after the ones it was trained on, as it would be used in practice.
 4. **Range.** The model also predicts a low and a high value for each day, and a correction measured on recent weeks makes the range more reliable.
 5. **Decision.** If a missing unit costs `Cu` and an idle one costs `Co`, the cheapest amount to reserve is the one that demand stays below on a share `Cu / (Cu + Co)` of the days. With `Cu = 4` and `Co = 1` that share is 80%.
-6. **Package and tests.** The code of the notebooks is organized as a Python package in `src/olist_forecast/`, with 98 automated tests written with pytest. Three of them need the real data and check that the package gives the same costs as the notebook, so they run on a machine that has the data and are skipped on GitHub. On every push, GitHub Actions checks the code style, runs the other 95 tests on Python 3.11, 3.12 and 3.14, and builds the Docker image.
+6. **Package and tests.** The code of the notebooks is organized as a Python package in `src/olist_forecast/`, with 110 automated tests written with pytest. Three of them need the real data and check that the package gives the same costs as the notebook, so they run on a machine that has the data and are skipped on GitHub. On every push, GitHub Actions checks the code style, runs the other 107 tests on Python 3.11, 3.12 and 3.14, and builds the Docker image.
 7. **Experiment tracking.** `scripts/run_experiment.py` saves each configuration tried, with its parameters and metrics, in MLflow so that runs can be compared.
-8. **Service.** A FastAPI service reads the series from the database, checks the inputs and returns the plan for the next week. A `Dockerfile` and a `docker-compose.yml` run the service and the database.
+8. **Retraining and monitoring.** `scripts/replay_monitoring.py` replays 24 weeks of past data with three schedules for retraining the model, never, every four weeks and every week. Each week it measures the error, the coverage of the range and the cost of the decision, and raises simple alerts. It is a simulation.
+9. **Service.** A FastAPI service reads the series from the database, checks the inputs and returns the plan for the next week. A `Dockerfile` and a `docker-compose.yml` run the service and the database.
 
 ## Try it
 
@@ -86,9 +88,9 @@ The notebooks in `notebooks/` build the demand series and walk through the analy
 ```
 data/raw/             Olist CSV files, not versioned
 data/processed/       Daily demand series, not versioned
-notebooks/            Exploration, cleaning, demand series, forecast and decision
+notebooks/            Exploration, cleaning, demand series, forecast and decision, retraining and monitoring
 sql/                  Queries for exploration, cleaning and keys
-scripts/              Logs a backtest configuration to MLflow
+scripts/              Logs a backtest configuration to MLflow, and runs the retraining replay
 src/olist_forecast/   Python package, with the service in api.py
 tests/                Automated tests, run on every push by GitHub Actions
 Dockerfile            Image of the service
@@ -97,9 +99,8 @@ docker-compose.yml    PostgreSQL and the service
 
 ## Next steps
 
-- Replay the three test periods as a retraining schedule with monitoring of error and coverage. This would be a simulation on past data and not a deployed monitor.
+- An alert rule for the retraining replay that needs several weeks in a row, since the weekly thresholds raised alerts in 3 to 5 of 24 weeks, including a week with a demand shock that all three schedules missed.
 - Lead time from purchase to dispatch per category, to convert arrivals into workload by stage.
-- Notebooks that import the package instead of repeating its code.
 
 ## Author
 

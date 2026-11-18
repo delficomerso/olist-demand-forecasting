@@ -8,6 +8,7 @@ from .evaluate import evaluate_config
 from .features import FEATURES, build_features, build_forecast_tables
 from .forecast import recommend_capacity
 from .models import VERY_SMALL
+from .monitoring import replay, summarize
 
 __all__ = [
     "FEATURES",
@@ -22,6 +23,8 @@ __all__ = [
     "evaluate_config",
     "load_series",
     "recommend_capacity",
+    "replay",
     "split_period",
+    "summarize",
     "wape",
 ]
