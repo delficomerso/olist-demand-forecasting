@@ -10,7 +10,7 @@ This project predicts how many items will be ordered each day in each product ca
 
 ## Results
 
-- **The forecast beats a simple rule.** The simple rule is to expect the average of the same weekday over the last four weeks. Its average error is 35% of the units sold. The model brings it to 32%, and it is better in each of the three test periods. A first model with default settings only tied the simple rule, and two changes made the difference. One was leaving out of training the five weeks starting at Black Friday 2017, because that single huge spike distorted the inputs of the following weeks. The other was using a small model, which generalized better than the default one with about 5,000 training rows. Classical statistical methods (Theta and ETS) reach about the same error, 0.32 to 0.33, so the model is not clearly better than them. It is kept because it also produces the range below and can take extra variables.
+- **The forecast beats a simple rule.** The simple rule is to expect the average of the same weekday over the last four weeks, with an average error of 35% of the units sold. The model brings it to 32%, better in each of the three test periods. Standard statistical methods reach a similar error, so the advantage of the model is that it also gives the range below.
 - **Each forecast comes with a range, and the range holds up.** A single number is never exactly right, so every day also gets a low and a high value, meant to contain the real demand on 8 of every 10 days. On average over the test periods it did on 79.5% of the days, between 70% and 86% depending on the period. This matters because the amount to reserve depends on how much demand can vary, not only on its average.
 - **The decision costs less.** When a missing unit costs four times as much as an idle one, a calibrated safety margin on top of the simple rule already saves 24% of the cost. Reserving from the model, with the safety margin scaled to the size of each category, costs a further 5% to 8% less than that buffered rule, for cost ratios from 1 to 9.
 
@@ -100,3 +100,9 @@ docker-compose.yml    PostgreSQL and the service
 - Replay the three test periods as a retraining schedule with monitoring of error and coverage. This would be a simulation on past data and not a deployed monitor.
 - Lead time from purchase to dispatch per category, to convert arrivals into workload by stage.
 - Notebooks that import the package instead of repeating its code.
+
+## Author
+
+Delfina Comerso Salzer. [LinkedIn](https://www.linkedin.com/in/delfina-comerso-salzer/) and [GitHub](https://github.com/delficomerso).
+
+The Olist dataset has its own license, which is on its Kaggle page.
